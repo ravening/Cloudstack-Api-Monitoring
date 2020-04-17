@@ -19,11 +19,6 @@ public class CloudstackEventListener {
 
     public CloudstackEventListener(ApiCountRepository repository) {
         this.apiCountRepository = repository;
-
-        if (apiCountRepository.findAll().size() == 0) {
-            ApiCount apiCount = ApiCount.builder().build();
-            apiCountRepository.save(apiCount);
-        }
     }
 
     @Async
@@ -44,7 +39,9 @@ public class CloudstackEventListener {
                     apiCount = apiCountOptional.get();
                     apiCount.setCount(apiCount.getCount() + 1);
                 } else {
-                    apiCount = ApiCount.builder().count(1).build();
+                    apiCount = ApiCount.builder()
+                            .count(1)
+                            .domainName(event.getDomain()).build();
                 }
 
                 apiCountRepository.save(apiCount);
