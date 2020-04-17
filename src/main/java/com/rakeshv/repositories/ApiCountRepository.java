@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ApiCountRepository extends JpaRepository<ApiCount, Long> {
-    Optional<ApiCount> findByDomainNameEqualsIgnoreCase(String domain);
+    Optional<ApiCount> findByDomainNameContains(String domain);
 }

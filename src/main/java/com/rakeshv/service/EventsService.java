@@ -121,7 +121,7 @@ public class EventsService {
                             if (eventTypeMap.containsKey(type[0].toLowerCase()) &&
                                     event.getState().equalsIgnoreCase("Completed") &&
                                     !event.getDomain().equalsIgnoreCase("ROOT") &&
-                                    !event.getAccount().equalsIgnoreCase("system")) {
+                                    !event.getUsername().equalsIgnoreCase("system")) {
                                 log.info("Platform: {} {}", key,event);
                                 eventTypeMap.get(type[0].toLowerCase()).processEvent(type);
                             }

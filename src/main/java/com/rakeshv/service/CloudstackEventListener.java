@@ -29,10 +29,10 @@ public class CloudstackEventListener {
         events.forEach(event -> {
             if (event.getState().equalsIgnoreCase("Completed") &&
                     !event.getDomain().equalsIgnoreCase("ROOT") &&
-                    !event.getAccount().equalsIgnoreCase("system")) {
+                    !event.getUsername().equalsIgnoreCase("system")) {
 
                 Optional<ApiCount> apiCountOptional = apiCountRepository
-                        .findByDomainNameEqualsIgnoreCase(event.getDomain());
+                        .findByDomainNameContains(event.getDomain().trim());
 
                 ApiCount apiCount;
                 if (apiCountOptional.isPresent()) {
