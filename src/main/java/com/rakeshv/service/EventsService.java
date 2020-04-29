@@ -41,6 +41,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -82,6 +85,9 @@ public class EventsService {
 
     private CloudstackEvent cloudstackEvent;
     ObjectMapper mapper;
+
+    ScheduledExecutorService scheduledExecutorService;
+
     @PostConstruct
     public void initTables() {
         eventTypeMap = new HashMap<>();
@@ -100,9 +106,10 @@ public class EventsService {
 
         cloudstackEvent = CloudstackEvent.builder().build();
         mapper = new ObjectMapper();
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.scheduleAtFixedRate(runnable, 0, 60, TimeUnit.SECONDS);
     }
 
-    @Scheduled(fixedRate = 60000)
     public void processEvents() throws IOException {
         log.info("Getting all the events");
         Map<String, String> resultMap = cloudstackEventService.listEvents();
@@ -132,5 +139,13 @@ public class EventsService {
             }
         }
     }
+
+    Runnable runnable = () -> {
+        try {
+            processEvents();
+        } catch (Exception e) {
+            log.error("Exceptiuon: {}", e.getMessage());
+        }
+    };
 
 }
