@@ -2,15 +2,19 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Domain;
 import com.rakeshv.repositories.DomainRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
+@Component("DOMAIN")
 public class DomainEvent implements EventType {
-    private final DomainRepository domainRepository;
+    @Autowired
+    DomainRepository domainRepository;
 
-    public DomainEvent(DomainRepository repository) {
-        this.domainRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (domainRepository.findAll().size() == 0) {
             Domain domain = Domain.builder().build();
             domainRepository.save(domain);

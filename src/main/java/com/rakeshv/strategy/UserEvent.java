@@ -3,18 +3,20 @@ package com.rakeshv.strategy;
 import com.rakeshv.models.User;
 import com.rakeshv.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
 @Slf4j
-@Service
+@Component("USER")
 public class UserEvent implements EventType {
-    private final UserRepository userRepository;
+    @Autowired
+    UserRepository userRepository;
 
-    public UserEvent(UserRepository repository) {
-        this.userRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (userRepository.findAll().size() == 0) {
             User user = User.builder().build();
             userRepository.save(user);

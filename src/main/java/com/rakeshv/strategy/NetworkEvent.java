@@ -2,21 +2,24 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Network;
 import com.rakeshv.repositories.NetworkRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
+@Component("NETWORK")
 public class NetworkEvent implements EventType {
-    private NetworkRepository networkRepository;
+    @Autowired
+    NetworkRepository networkRepository;
 
-    public NetworkEvent(NetworkRepository repository) {
-        this.networkRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (networkRepository.findAll().size() == 0) {
             Network network = Network.builder().build();
             networkRepository.save(network);
         }
     }
-
     @Override
     public void processEvent(String[] action) {
         StringBuilder sb = new StringBuilder();

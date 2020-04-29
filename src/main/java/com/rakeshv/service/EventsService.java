@@ -79,8 +79,10 @@ public class EventsService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public EventsService(ApplicationEventPublisher publisher) {
+    public EventsService(ApplicationEventPublisher publisher,
+                         Map<String, EventType> eventMap) {
         this.eventPublisher = publisher;
+        this.eventTypeMap = eventMap;
     }
 
     private CloudstackEvent cloudstackEvent;
@@ -90,20 +92,6 @@ public class EventsService {
 
     @PostConstruct
     public void initTables() {
-        eventTypeMap = new HashMap<>();
-        eventTypeMap.putIfAbsent("user", new UserEvent(userRepository));
-        eventTypeMap.putIfAbsent("vm", new VmEvent(vmRespository));
-        eventTypeMap.putIfAbsent("nic", new NicEvent(nicRepository));
-        eventTypeMap.putIfAbsent("lb", new LoadBalancerEvent(loadBalancerRepository));
-        eventTypeMap.putIfAbsent("vnc", new VncEvent(vncRepository));
-        eventTypeMap.putIfAbsent("volume", new VolumeEvent(volumeRepository));
-        eventTypeMap.putIfAbsent("domain", new DomainEvent(domainRepository));
-        eventTypeMap.putIfAbsent("account", new AccountEvent(accountRepository));
-        eventTypeMap.putIfAbsent("template", new TemplateEvent(templateRepository));
-        eventTypeMap.putIfAbsent("vpn", new VpnEvent(vpnRepository));
-        eventTypeMap.putIfAbsent("sg", new SgEvent(securityGroupRepository));
-        eventTypeMap.putIfAbsent("network", new NetworkEvent(networkRepository));
-
         cloudstackEvent = CloudstackEvent.builder().build();
         mapper = new ObjectMapper();
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();

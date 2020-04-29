@@ -2,22 +2,25 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Vm;
 import com.rakeshv.repositories.VmRespository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+@Component("VM")
 public class VmEvent implements EventType {
-    private final VmRespository vmRespository;
+    @Autowired
+    VmRespository vmRespository;
 
-    public VmEvent(VmRespository repository) {
-        this.vmRespository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (vmRespository.findAll().size() == 0) {
             Vm vm = Vm.builder().build();
             vmRespository.save(vm);
         }
     }
-
     @Override
     public void processEvent(String[] action) {
         String function = action.length > 2 ? action[1].toLowerCase() + action[2].toLowerCase() :

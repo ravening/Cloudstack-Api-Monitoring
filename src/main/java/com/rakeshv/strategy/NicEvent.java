@@ -2,22 +2,24 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Nic;
 import com.rakeshv.repositories.NicRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+@Component("NIC")
 public class NicEvent implements EventType {
-    private final NicRepository nicRepository;
+    @Autowired NicRepository nicRepository;
 
-    public NicEvent(NicRepository repository) {
-        this.nicRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (nicRepository.findAll().size() == 0) {
             Nic nic = Nic.builder().build();
             nicRepository.save(nic);
         }
     }
-
     @Override
     public void processEvent(String[] action) {
         try {

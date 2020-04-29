@@ -2,16 +2,20 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Vnc;
 import com.rakeshv.repositories.VncRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+@Component("VNC")
 public class VncEvent implements EventType {
-    private final VncRepository vncRepository;
+    @Autowired
+    VncRepository vncRepository;
 
-    public VncEvent(VncRepository repository) {
-        this.vncRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (vncRepository.findAll().size() == 0) {
             Vnc vnc = Vnc.builder().build();
             vncRepository.save(vnc);

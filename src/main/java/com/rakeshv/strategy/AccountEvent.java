@@ -1,22 +1,25 @@
 package com.rakeshv.strategy;
 
-import java.lang.reflect.InvocationTargetException;
-
 import com.rakeshv.models.Account;
 import com.rakeshv.repositories.AccountRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.lang.reflect.InvocationTargetException;
+
+@Component("ACCOUNT")
 public class AccountEvent implements EventType {
-    private final AccountRepository accountRepository;
+    @Autowired
+    AccountRepository accountRepository;
 
-    public AccountEvent(AccountRepository repository) {
-        this.accountRepository = repository;
-
+    @PostConstruct
+    public void postContruct() {
         if (accountRepository.findAll().size() == 0) {
             Account account = Account.builder().build();
             accountRepository.save(account);
         }
     }
-
     @Override
     public void processEvent(String[] action) {
         String function = action.length > 2 ? action[1].toLowerCase() + action[2].toLowerCase() :

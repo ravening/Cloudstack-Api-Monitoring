@@ -2,15 +2,19 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Volume;
 import com.rakeshv.repositories.VolumeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
+@Component("VOLUME")
 public class VolumeEvent implements EventType {
-    private final VolumeRepository volumeRepository;
+    @Autowired
+    VolumeRepository volumeRepository;
 
-    public VolumeEvent(VolumeRepository repository) {
-        this.volumeRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (volumeRepository.findAll().size() == 0) {
             Volume volume = Volume.builder().build();
             volumeRepository.save(volume);

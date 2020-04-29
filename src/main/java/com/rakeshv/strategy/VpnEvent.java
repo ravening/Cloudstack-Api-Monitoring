@@ -2,15 +2,19 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Vpn;
 import com.rakeshv.repositories.VpnRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
+@Component("VPN")
 public class VpnEvent implements EventType {
-    private VpnRepository vpnRepository;
+    @Autowired
+    VpnRepository vpnRepository;
 
-    public VpnEvent(VpnRepository repository) {
-        this.vpnRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (vpnRepository.findAll().size() == 0) {
             Vpn vpn = Vpn.builder().build();
             vpnRepository.save(vpn);

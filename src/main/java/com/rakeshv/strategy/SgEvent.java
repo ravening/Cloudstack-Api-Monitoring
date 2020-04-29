@@ -2,15 +2,19 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.SecurityGroup;
 import com.rakeshv.repositories.SecurityGroupRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
+@Component("SG")
 public class SgEvent implements EventType {
-    private SecurityGroupRepository securityGroupRepository;
+    @Autowired
+    SecurityGroupRepository securityGroupRepository;
 
-    public SgEvent(SecurityGroupRepository repository) {
-        this.securityGroupRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (securityGroupRepository.findAll().size() == 0) {
             SecurityGroup securityGroup = SecurityGroup.builder().build();
             securityGroupRepository.save(securityGroup);

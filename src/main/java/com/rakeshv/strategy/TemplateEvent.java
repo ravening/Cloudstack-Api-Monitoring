@@ -2,20 +2,25 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.Template;
 import com.rakeshv.repositories.TemplateRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 
+@Component("TEMPLATE")
 public class TemplateEvent implements EventType {
-    private final TemplateRepository templateRepository;
+    @Autowired
+    TemplateRepository templateRepository;
 
-    public TemplateEvent(TemplateRepository repository) {
-        this.templateRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (templateRepository.findAll().size() == 0) {
             Template template = Template.builder().build();
             templateRepository.save(template);
         }
     }
+
     @Override
     public void processEvent(String[] action) {
         String function = action.length > 2 ? action[1].toLowerCase() + action[2].toLowerCase() :

@@ -2,22 +2,25 @@ package com.rakeshv.strategy;
 
 import com.rakeshv.models.LoadBalancer;
 import com.rakeshv.repositories.LoadBalancerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+@Component("LB")
 public class LoadBalancerEvent implements EventType {
-    private LoadBalancerRepository loadBalancerRepository;
+    @Autowired
+    LoadBalancerRepository loadBalancerRepository;
 
-    public LoadBalancerEvent(LoadBalancerRepository repository) {
-        this.loadBalancerRepository = repository;
-
+    @PostConstruct
+    public void postConstruct() {
         if (loadBalancerRepository.findAll().size() == 0) {
             LoadBalancer loadBalancer = LoadBalancer.builder().build();
             loadBalancerRepository.save(loadBalancer);
         }
     }
-
     @Override
     public void processEvent(String[] action) {
         String function = action.length > 2 ? action[1].toLowerCase() + action[2].toLowerCase() :
