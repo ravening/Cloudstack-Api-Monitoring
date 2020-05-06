@@ -166,3 +166,15 @@ CREATE TABLE api_count(
     domain_name varchar(20),
     count INT(20)
 );
+
+DROP TABLE IF EXISTS iso;
+CREATE TABLE iso(
+    id integer auto_increment primary key,
+    iso_create INT(20),
+    iso_delete INT(20),
+    iso_copy INT(20),
+    iso_attach INT(20),
+    iso_detach INT(20)
+    iso_extract INT(20)
+    iso_upload INT(20)
+);
