@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
@@ -74,6 +75,8 @@ public class EventsService {
     SecurityGroupRepository securityGroupRepository;
     @Autowired
     NetworkRepository networkRepository;
+    @Autowired
+    MicrometerEventsService micrometerEventsService;
 
     Map<String, EventType> eventTypeMap;
 
@@ -101,6 +104,7 @@ public class EventsService {
     public void processEvents() throws IOException {
         log.info("Getting all the events");
         Map<String, String> resultMap = cloudstackEventService.listEvents();
+        AtomicReference<Double> count = new AtomicReference<>((double) 0);
 
         for (String key : resultMap.keySet()) {
             ListEventsResponse listEventsResponse = mapper.readValue(resultMap.get(key), ListEventsResponse.class);
@@ -119,6 +123,7 @@ public class EventsService {
                                     !event.getUsername().equalsIgnoreCase("system")) {
                                 log.info("Platform: {} {}", key,event);
                                 eventTypeMap.get(type[0].toLowerCase()).processEvent(type);
+                                count.getAndSet((double) (count.get() + 1));
                             }
                         }
 
@@ -126,13 +131,14 @@ public class EventsService {
 
             }
         }
+        micrometerEventsService.setApiCountPerMinute(count.get());
     }
 
     Runnable runnable = () -> {
         try {
             processEvents();
         } catch (Exception e) {
-            log.error("Exceptiuon: {}", e.getMessage());
+            log.error("Exception: {}", e.getMessage());
         }
     };
 

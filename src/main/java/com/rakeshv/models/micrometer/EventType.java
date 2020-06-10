@@ -43,7 +43,9 @@ public enum EventType {
     DOMAIN_UPDATE("domain_update", "Total number of domains updated"),
     NIC_CREATE("nic_create", "Total number of NIC's created for VM's"),
     NIC_DELETE("nic_delete", "Total number of NIC's deleted from VM's"),
-    NIC_UPDATE("nic_updte", "Total number of NIC's updated for VM's")
+    NIC_UPDATE("nic_updte", "Total number of NIC's updated for VM's"),
+    API_COUNT_PER_MINUTE("api_count", "Total API count per minute"),
+    TOTAL_API_COUNT("total_api_count", "Total API count so far")
     ;
 
     private String counterName;

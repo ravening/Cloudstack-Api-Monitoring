@@ -178,3 +178,11 @@ CREATE TABLE iso(
     iso_extract INT(20)
     iso_upload INT(20)
 );
+
+DROP TABLE IF EXISTS api_count_per_domain;
+CREATE TABLE api_count(
+    id integer auto_increment primary key,
+    domain_name varchar(20),
+    api varchar(20),
+    count INT(20)
+);
