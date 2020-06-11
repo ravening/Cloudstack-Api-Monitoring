@@ -62,7 +62,8 @@ public class CloudstackEventListener {
             //                    .doOnError(e -> log.error("Error sending message {}", e))
             //                    .subscribe();
             if (event.getState().equalsIgnoreCase("Completed") &&
-                    !event.getDomain().equalsIgnoreCase("ROOT") &&
+                    !(event.getUsername().equalsIgnoreCase("admin") &&
+                            event.getDomain().equalsIgnoreCase("ROOT")) &&
                     !event.getUsername().equalsIgnoreCase("system")) {
 
                 Optional<ApiCount> apiCountOptional = apiCountRepository
