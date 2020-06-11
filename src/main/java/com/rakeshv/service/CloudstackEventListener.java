@@ -56,6 +56,7 @@ public class CloudstackEventListener {
         events.forEach(event -> {
             SenderRecord<Integer, String, Integer> message =
                     SenderRecord.create(new ProducerRecord<>("test-events", toBinary(event)), 1);
+            // Uncomment below code to send events to kafak on "test-events" topic
             //            kafkaSender.send(Mono.just(message))
             //                    .doOnNext(r -> log.info("Message sent {}", r))
             //                    .doOnError(e -> log.error("Error sending message {}", e))
