@@ -9,6 +9,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ public class CommandBuilderService {
     @Value("${cloudstack.public.platforms}")
     private String vpsPlatformsList;
 
+    ExecutorService executorService;
     public HashMap<String, CloudstackHandle> platformMap;
     List<Callable<String>> callableList = new ArrayList<>();
     String[] csrpPlatforms;
@@ -48,7 +50,16 @@ public class CommandBuilderService {
         platformMap = new HashMap<>();
         csrpPlatforms = csrpPlatformsList.split(",");
         vpsPlatforms = vpsPlatformsList.split(",");
-        for (String platform : csrpPlatforms) {
+        int NUMBER_OF_THREADS = csrpPlatforms.length + vpsPlatforms.length;
+        executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+
+        createPlatformMap(csrpPlatforms);
+
+        createPlatformMap(vpsPlatforms);
+    }
+
+    private void createPlatformMap(String[] platforms) {
+        for (String platform : platforms) {
             String url = environment.getProperty(platform + ".url");
             String apiKey = environment.getProperty(platform + ".apiKey");
             String secretKey = environment.getProperty(platform + ".secretKey");
@@ -60,19 +71,11 @@ public class CommandBuilderService {
 
             platformMap.putIfAbsent(platform, cloudstackHandle);
         }
+    }
 
-        for (String platform : vpsPlatforms) {
-            String url = environment.getProperty(platform + ".url");
-            String apiKey = environment.getProperty(platform + ".apiKey");
-            String secretKey = environment.getProperty(platform + ".secretKey");
-
-            CloudstackHandle cloudstackHandle = CloudstackHandle.builder()
-                    .url(url)
-                    .apiKey(apiKey)
-                    .secretKey(secretKey).build();
-
-            platformMap.putIfAbsent(platform, cloudstackHandle);
-        }
+    @PreDestroy
+    public void cleanup() {
+        executorService.shutdownNow();
     }
 
     public Map<String, String> executeOnAllPlatforms(String command, Map<String, String> parameters) {
@@ -95,7 +98,6 @@ public class CommandBuilderService {
 
     private Map<String, String> executeCommandOnPlatform(String command, Map<String,String> parameters, boolean isPublic) {
         Map<String, String> resultMap = new HashMap<>();
-        int NUMBER_OF_THREADS = isPublic ? vpsPlatforms.length : csrpPlatforms.length;
         String[] platforms = isPublic ? vpsPlatforms : csrpPlatforms;
         callableList = Arrays.asList(platforms)
                 .stream()
@@ -112,8 +114,6 @@ public class CommandBuilderService {
                     return callable;
                 })
                 .collect(Collectors.toList());
-
-        ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
         try {
             List<Future<String>> futures = executorService.invokeAll(callableList);
