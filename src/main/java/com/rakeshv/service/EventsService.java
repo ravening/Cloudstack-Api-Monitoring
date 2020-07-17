@@ -2,9 +2,11 @@ package com.rakeshv.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rakeshv.models.CloudstackEvent;
+import com.rakeshv.models.ElasticsearchLog;
 import com.rakeshv.models.cloudstackresponse.Event;
 import com.rakeshv.models.cloudstackresponse.EventResponse;
 import com.rakeshv.models.cloudstackresponse.ListEventsResponse;
+import com.rakeshv.repositories.ElasticsearchLogRepository;
 import com.rakeshv.strategy.EventType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -27,10 +30,13 @@ public class EventsService {
     CloudstackEventService cloudstackEventService;
     @Autowired
     MicrometerEventsService micrometerEventsService;
+    @Autowired
+    ElasticsearchLogRepository elasticsearchLogRepository;
 
     Map<String, EventType> eventTypeMap;
-
+    ElasticsearchLog elasticsearchLog;
     private final ApplicationEventPublisher eventPublisher;
+    AtomicReference<Double> count;
 
     public EventsService(ApplicationEventPublisher publisher,
                          Map<String, EventType> eventMap) {
@@ -49,12 +55,13 @@ public class EventsService {
         mapper = new ObjectMapper();
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.scheduleAtFixedRate(runnable, 0, 60, TimeUnit.SECONDS);
+        elasticsearchLog = ElasticsearchLog.builder().build();
+        count = new AtomicReference<>((double) 0);
     }
 
     public void processEvents() throws IOException {
         log.info("Getting all the events");
         Map<String, String> resultMap = cloudstackEventService.listEvents();
-        AtomicReference<Double> count = new AtomicReference<>((double) 0);
 
         for (String key : resultMap.keySet()) {
             ListEventsResponse listEventsResponse = mapper.readValue(resultMap.get(key), ListEventsResponse.class);
@@ -71,8 +78,22 @@ public class EventsService {
                                     event.getState().equalsIgnoreCase("Completed") &&
                                     !event.getDomain().equalsIgnoreCase("ROOT") &&
                                     !event.getUsername().equalsIgnoreCase("system")) {
-                                log.info("Platform: {} {}", key,event);
                                 eventTypeMap.get(type[0].toLowerCase()).processEvent(type);
+                                elasticsearchLog.setAccount(event.getAccount());
+                                elasticsearchLog.setDescription(event.getDescription());
+                                elasticsearchLog.setDomain(event.getDomain());
+                                elasticsearchLog.setDomainid(event.getDomainid());
+                                elasticsearchLog.setUuid(event.getId());
+                                elasticsearchLog.setLevel(event.getLevel());
+                                elasticsearchLog.setState(event.getState());
+                                elasticsearchLog.setType(event.getType());
+                                elasticsearchLog.setUsername(event.getUsername());
+                                elasticsearchLog.setTimestamp(event.getCreated());
+                                elasticsearchLog.setPlatform(key);
+                                elasticsearchLog.setId(UUID.randomUUID().toString());
+                                elasticsearchLogRepository.save(elasticsearchLog)
+                                        .subscribe(entry -> log.info("{}", entry),
+                                                error -> log.error("Error: {}", error.getMessage()));
                                 count.getAndSet((double) (count.get() + 1));
                             }
                         }
@@ -82,6 +103,7 @@ public class EventsService {
             }
         }
         micrometerEventsService.setApiCountPerMinute(count.get());
+        count.set(0.0);
     }
 
     Runnable runnable = () -> {
